@@ -1,0 +1,477 @@
+package com.client;
+
+import java.awt.EventQueue;
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
+
+import com.rmiinterface.*;
+import java.awt.Color;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.CardLayout;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JTextArea;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.LineBorder;
+import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
+
+public class ClientRun extends JFrame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private JPanel contentPane;
+
+	/**
+	 * Launch the application.
+	 */
+	private static com.rmiinterface.RMIInterface lookUp;
+	private JTextField textFieldUserID;
+	private JTextField textFieldTotal;
+	private JTextField textFieldFirstName;
+	private JTextField textFieldSurname;
+	private JTable table;
+	private JScrollPane scrollPane;
+	private JPanel pEnabling;
+	private JPanel pStockReport;
+	private JPanel pLoyaltyEditor;
+	private JPanel pShopReport;
+	private JPanel pSpecialOffer;
+	private JTextField textFieldX;
+	private JTextField textFieldY;
+	private JTextField textField_3;
+	private JTextField textFieldClientName;
+	private JTextField textFieldClientSurname;
+	private JTextField textFieldAddress1;
+	private JTextField textFieldAddress2;
+	private JTextField textFieldCity;
+	private JTextField textFieldContact;
+	private JTextField textFieldLoyaltyDiscount;
+	
+
+	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException{
+		
+		//lookUp = (RMIInterface) Naming.lookup("//localhost/MyServer");
+		//String txt = JOptionPane.showInputDialog("What is your name?");
+		
+		//String response = lookUp.helloTo(txt);
+		//JOptionPane.showMessageDialog(null, response);
+
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					ClientRun frame = new ClientRun();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public ClientRun() {
+		setBackground(Color.LIGHT_GRAY);
+		setResizable(false);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 1024, 768);
+		//create top panel menu
+		createMenu();
+		
+		//create main jpanel for card layout
+		contentPane = new JPanel();
+		contentPane.setBackground(Color.LIGHT_GRAY);
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(new CardLayout(0, 0));
+		
+		createLoyaltyEditor();
+		
+		createEnabling(); 
+		
+		createStockReport();
+		
+		createShopReport();
+		
+		createSpecialOffer();
+
+	}
+	
+	//create menu bar:
+	private void createMenu(){
+		
+		//menu bar
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		//menu option
+		JMenu mnProgram = new JMenu("Program");
+		menuBar.add(mnProgram);
+		//menu item
+		JMenuItem mntmSettings = new JMenuItem("Settings");
+		mnProgram.add(mntmSettings);
+		//menu item
+		JMenuItem mntmQuit = new JMenuItem("Quit");
+		mntmQuit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.exit(0);
+			}
+		});
+		mnProgram.add(mntmQuit);
+		
+		//menu option
+		JMenu mnExternal = new JMenu("External");
+		menuBar.add(mnExternal);
+		//menu item
+		JMenuItem mntmEnablingInquiry = new JMenuItem("Enabling Inquiry");
+		mntmEnablingInquiry.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "Enabling");
+			}
+		});
+		mnExternal.add(mntmEnablingInquiry);
+		
+		//menu option
+		JMenu mnWarehouse = new JMenu("Warehouse");
+		menuBar.add(mnWarehouse);
+		//menu item
+		JMenuItem mntmStockReport = new JMenuItem("Stock Report");
+		mntmStockReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "StockReport");
+			}
+		});
+		mnWarehouse.add(mntmStockReport);
+		
+		//menu option
+		JMenu mnShopManager = new JMenu("Shop Manager");
+		menuBar.add(mnShopManager);
+		//menu item
+		JMenuItem mntmShopReport = new JMenuItem("Shop Report");
+		mntmShopReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "ShopReport");
+			}
+		});
+		mnShopManager.add(mntmShopReport);
+		//menu item
+		JMenuItem mntmSpecialOfferEditor = new JMenuItem("Special Offer Editor");
+		mntmSpecialOfferEditor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "SpecialOffer");
+			}
+		});
+		mnShopManager.add(mntmSpecialOfferEditor);
+		
+		JMenuItem mntmLoyaltyCard = new JMenuItem("Loyalty Card");
+		mntmLoyaltyCard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "LoyaltyCard");
+			}
+		});
+		mnShopManager.add(mntmLoyaltyCard);
+	}
+	
+	//create cards:
+	private void createSpecialOffer() {
+		pSpecialOffer = new JPanel();
+		pSpecialOffer.setLayout(null);
+		pSpecialOffer.setBackground(Color.WHITE);
+		contentPane.add(pSpecialOffer, "SpecialOffer");
+		
+		JLabel lblSpecialOfferEditor = new JLabel("Special Offer Editor");
+		lblSpecialOfferEditor.setBounds(10, 11, 140, 14);
+		pSpecialOffer.add(lblSpecialOfferEditor);
+		
+		JLabel lblSelectItemFrom = new JLabel("Select Item From The List");
+		lblSelectItemFrom.setBounds(10, 48, 210, 14);
+		pSpecialOffer.add(lblSelectItemFrom);
+		
+		JComboBox comboBoxItems = new JComboBox();
+		comboBoxItems.setMaximumRowCount(5000);
+		comboBoxItems.setBounds(10, 73, 210, 22);
+		pSpecialOffer.add(comboBoxItems);
+		
+		JLabel lblSetPromotionType = new JLabel("Set Promotion Type");
+		lblSetPromotionType.setBounds(230, 48, 140, 14);
+		pSpecialOffer.add(lblSetPromotionType);
+		
+		JCheckBox chckbxXForY = new JCheckBox("X in price of Y");
+		chckbxXForY.setBounds(240, 73, 120, 23);
+		pSpecialOffer.add(chckbxXForY);
+		
+		textFieldX = new JTextField();
+		textFieldX.setBounds(386, 74, 30, 20);
+		pSpecialOffer.add(textFieldX);
+		textFieldX.setColumns(10);
+		
+		JLabel lblXQuanity = new JLabel("X quanity");
+		lblXQuanity.setBounds(380, 48, 46, 14);
+		pSpecialOffer.add(lblXQuanity);
+		
+		JLabel lblYQuanity = new JLabel("Y quanity");
+		lblYQuanity.setBounds(454, 48, 46, 14);
+		pSpecialOffer.add(lblYQuanity);
+		
+		textFieldY = new JTextField();
+		textFieldY.setColumns(10);
+		textFieldY.setBounds(464, 74, 30, 20);
+		pSpecialOffer.add(textFieldY);
+		
+		JCheckBox chckbxDiscount = new JCheckBox("Discount");
+		chckbxDiscount.setBounds(240, 128, 120, 23);
+		pSpecialOffer.add(chckbxDiscount);
+		
+		textField_3 = new JTextField();
+		textField_3.setColumns(10);
+		textField_3.setBounds(386, 129, 30, 20);
+		pSpecialOffer.add(textField_3);
+		
+		JLabel lblSetDiscount = new JLabel("Discount %");
+		lblSetDiscount.setBounds(380, 106, 114, 14);
+		pSpecialOffer.add(lblSetDiscount);
+		
+		JButton btnSetPromotion = new JButton("Set Promotion");
+		btnSetPromotion.setBounds(230, 327, 130, 23);
+		pSpecialOffer.add(btnSetPromotion);
+		
+		JCheckBox chckbxFreeDelivery = new JCheckBox("FreeDelivery");
+		chckbxFreeDelivery.setBounds(240, 179, 120, 23);
+		pSpecialOffer.add(chckbxFreeDelivery);
+		
+		JCheckBox chckbxBuyGet = new JCheckBox("Buy 1 get 1 free");
+		chckbxBuyGet.setBounds(240, 230, 120, 23);
+		pSpecialOffer.add(chckbxBuyGet);
+		
+		JCheckBox chckbxLoyaltyDisc = new JCheckBox("Loyalty Discount Applies");
+		chckbxLoyaltyDisc.setBounds(240, 277, 176, 23);
+		pSpecialOffer.add(chckbxLoyaltyDisc);
+		
+	}
+
+	private void createLoyaltyEditor() {
+		pLoyaltyEditor = new JPanel();
+		pLoyaltyEditor.setBackground(Color.WHITE);
+		contentPane.add(pLoyaltyEditor, "LoyaltyCard");
+		pLoyaltyEditor.setLayout(null);
+		
+		JLabel lblLoyaltyEditor = new JLabel("New Client Loyalty Card");
+		lblLoyaltyEditor.setBounds(10, 11, 287, 25);
+		pLoyaltyEditor.add(lblLoyaltyEditor);
+		
+		JLabel lblClientName = new JLabel("Client Name:");
+		lblClientName.setBounds(10, 47, 140, 14);
+		pLoyaltyEditor.add(lblClientName);
+		
+		textFieldClientName = new JTextField();
+		textFieldClientName.setBounds(10, 72, 230, 20);
+		pLoyaltyEditor.add(textFieldClientName);
+		textFieldClientName.setColumns(10);
+		
+		JLabel lblClientSurname = new JLabel("Client Surname:");
+		lblClientSurname.setBounds(10, 103, 140, 14);
+		pLoyaltyEditor.add(lblClientSurname);
+		
+		textFieldClientSurname = new JTextField();
+		textFieldClientSurname.setBounds(10, 128, 230, 20);
+		pLoyaltyEditor.add(textFieldClientSurname);
+		textFieldClientSurname.setColumns(10);
+		
+		JLabel lblAddress1 = new JLabel("Address 1");
+		lblAddress1.setBounds(10, 158, 140, 14);
+		pLoyaltyEditor.add(lblAddress1);
+		
+		textFieldAddress1 = new JTextField();
+		textFieldAddress1.setBounds(10, 183, 230, 20);
+		pLoyaltyEditor.add(textFieldAddress1);
+		textFieldAddress1.setColumns(10);
+		
+		JLabel lblAddress2 = new JLabel("Address 2");
+		lblAddress2.setBounds(10, 215, 140, 14);
+		pLoyaltyEditor.add(lblAddress2);
+		
+		textFieldAddress2 = new JTextField();
+		textFieldAddress2.setBounds(10, 240, 230, 20);
+		pLoyaltyEditor.add(textFieldAddress2);
+		textFieldAddress2.setColumns(10);
+		
+		JLabel lblCity = new JLabel("City");
+		lblCity.setBounds(10, 271, 140, 14);
+		pLoyaltyEditor.add(lblCity);
+		
+		textFieldCity = new JTextField();
+		textFieldCity.setBounds(10, 296, 230, 20);
+		pLoyaltyEditor.add(textFieldCity);
+		textFieldCity.setColumns(10);
+		
+		JLabel lblPhone = new JLabel("Contact Number");
+		lblPhone.setBounds(10, 331, 140, 14);
+		pLoyaltyEditor.add(lblPhone);
+		
+		textFieldContact = new JTextField();
+		textFieldContact.setBounds(10, 356, 230, 20);
+		pLoyaltyEditor.add(textFieldContact);
+		textFieldContact.setColumns(10);
+		
+		JButton btnSubmit = new JButton("Submit");
+		btnSubmit.setBounds(100, 398, 140, 23);
+		pLoyaltyEditor.add(btnSubmit);
+		
+		JButton btnSetDiscount = new JButton("Set Discount");
+		btnSetDiscount.setBounds(437, 398, 140, 23);
+		pLoyaltyEditor.add(btnSetDiscount);
+		
+		JLabel lblSetLoyaltyDiscount = new JLabel("Set Loyalty Discount[%]:");
+		lblSetLoyaltyDiscount.setBounds(437, 331, 140, 14);
+		pLoyaltyEditor.add(lblSetLoyaltyDiscount);
+		
+		textFieldLoyaltyDiscount = new JTextField();
+		textFieldLoyaltyDiscount.setBounds(437, 356, 50, 20);
+		pLoyaltyEditor.add(textFieldLoyaltyDiscount);
+		textFieldLoyaltyDiscount.setColumns(10);
+	}
+	
+	private void createEnabling(){
+		
+		pEnabling = new JPanel();
+		pEnabling.setBackground(Color.WHITE);
+		contentPane.add(pEnabling, "Enabling");
+		pEnabling.setLayout(null);
+		
+		JLabel lblUserId = new JLabel("Client ID (or Loyalty Card ID)");
+		lblUserId.setBounds(10, 60, 210, 14);
+		pEnabling.add(lblUserId);
+		
+		textFieldUserID = new JTextField();
+		textFieldUserID.setBounds(10, 85, 150, 20);
+		pEnabling.add(textFieldUserID);
+		textFieldUserID.setColumns(10);
+		
+		JLabel lblTotalCharge = new JLabel("Total Charge");
+		lblTotalCharge.setBounds(10, 116, 150, 14);
+		pEnabling.add(lblTotalCharge);
+		
+		textFieldTotal = new JTextField();
+		textFieldTotal.setBounds(10, 141, 150, 20);
+		pEnabling.add(textFieldTotal);
+		textFieldTotal.setColumns(10);
+		
+		JLabel lblEnablingInquiryForm = new JLabel("Enabling Inquiry Form");
+		lblEnablingInquiryForm.setBounds(10, 11, 210, 38);
+		pEnabling.add(lblEnablingInquiryForm);
+		
+		JButton btnSend = new JButton("Send");
+		btnSend.setBounds(71, 288, 89, 23);
+		pEnabling.add(btnSend);
+		
+		JTextArea textAreaResult = new JTextArea();
+		textAreaResult.setEditable(false);
+		textAreaResult.setBackground(Color.LIGHT_GRAY);
+		textAreaResult.setBounds(281, 83, 581, 500);
+		pEnabling.add(textAreaResult);
+		
+		textFieldFirstName = new JTextField();
+		textFieldFirstName.setBounds(10, 201, 150, 20);
+		pEnabling.add(textFieldFirstName);
+		textFieldFirstName.setColumns(10);
+		
+		JLabel lblName = new JLabel("First Name");
+		lblName.setBounds(10, 172, 150, 14);
+		pEnabling.add(lblName);
+		
+		JLabel lblSurname = new JLabel("Surname");
+		lblSurname.setBounds(10, 232, 46, 14);
+		pEnabling.add(lblSurname);
+		
+		textFieldSurname = new JTextField();
+		textFieldSurname.setBounds(10, 257, 150, 20);
+		pEnabling.add(textFieldSurname);
+		textFieldSurname.setColumns(10);
+		
+		JButton btnAcceptCredit = new JButton("Accept Credit");
+		btnAcceptCredit.setEnabled(false);
+		btnAcceptCredit.setBounds(742, 594, 120, 23);
+		pEnabling.add(btnAcceptCredit);
+		
+		JLabel lblInquiryResults = new JLabel("Inquiry Results:");
+		lblInquiryResults.setBounds(281, 60, 128, 14);
+		pEnabling.add(lblInquiryResults);
+	}
+	
+	private void createStockReport(){
+		pStockReport = new JPanel();
+		pStockReport.setBackground(Color.WHITE);
+		contentPane.add(pStockReport, "StockReport");
+		pStockReport.setLayout(null);
+		
+		table = new JTable();
+		table.setCellSelectionEnabled(true);
+		table.setBorder(new LineBorder(new Color(0, 0, 0), 3));
+		//scrollPane = new JScrollPane(table);
+		table.setFillsViewportHeight(true);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+					"Product ID", "Name", "Price", "In Stock", "Sold Total", "Delivery Cost", "Max Stock", "X for Y", "Free Delivery", "Loyalty Discount", "Buy 1 get 1"
+			}
+		));
+		table.setBounds(10, 686, 978, -656);
+
+		pStockReport.add(table);
+		
+		JLabel lblStockReport = new JLabel("Stock Report");
+		lblStockReport.setBounds(10, 11, 74, 14);
+		pStockReport.add(lblStockReport);
+		
+		JButton btnUpdate = new JButton("Update");
+		btnUpdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+			}
+		});
+		btnUpdate.setBounds(94, 7, 89, 23);
+		pStockReport.add(btnUpdate);
+	}
+	
+	private void createShopReport(){
+		pShopReport = new JPanel();
+		pShopReport.setLayout(null);
+		pShopReport.setBackground(Color.LIGHT_GRAY);
+		contentPane.add(pShopReport, "ShopReport");
+		
+		JLabel lblShopReport = new JLabel("Shop Report");
+		lblShopReport.setBackground(Color.LIGHT_GRAY);
+		lblShopReport.setBounds(20, 11, 352, 14);
+		pShopReport.add(lblShopReport);
+		
+		JTextArea textAreaShopReport = new JTextArea();
+		textAreaShopReport.setEditable(false);
+		textAreaShopReport.setBounds(20, 36, 968, 650);
+		pShopReport.add(textAreaShopReport);
+	}
+}
