@@ -2,8 +2,10 @@ package com.client;
 
 import java.awt.EventQueue;
 import java.net.MalformedURLException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -11,7 +13,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
-import com.rmiinterface.*;
 import java.awt.Color;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -24,6 +25,9 @@ import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+
+import com.registry.RMIInterface;
+
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 import javax.swing.JComboBox;
@@ -31,23 +35,17 @@ import javax.swing.JCheckBox;
 
 public class ClientRun extends JFrame {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	private static com.registry.RMIInterface lookUp;
 
 	private JPanel contentPane;
-
-	/**
-	 * Launch the application.
-	 */
-	private static com.rmiinterface.RMIInterface lookUp;
 	private JTextField textFieldUserID;
 	private JTextField textFieldTotal;
 	private JTextField textFieldFirstName;
 	private JTextField textFieldSurname;
 	private JTable table;
 	private JScrollPane scrollPane;
+	private JPanel pMain;
 	private JPanel pEnabling;
 	private JPanel pStockReport;
 	private JPanel pLoyaltyEditor;
@@ -63,16 +61,22 @@ public class ClientRun extends JFrame {
 	private JTextField textFieldCity;
 	private JTextField textFieldContact;
 	private JTextField textFieldLoyaltyDiscount;
+	private JTextField textFieldItemName;
+	private JTextField textFieldQty;
+	private JTextField textFieldPrice;
+	private JTextField textFieldDelivery;
+	private JTextArea textAreaResult;
+	private JButton btnSend;
+	private JButton btnAcceptCredit;
+	//for enabling:
+	private double toPayment = 0;
+	private ArrayList<String> toServer = new ArrayList<>();
+	private ArrayList<String> fromServer = new ArrayList<>();
 	
-
-	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException{
-		
-		//lookUp = (RMIInterface) Naming.lookup("//localhost/MyServer");
-		//String txt = JOptionPane.showInputDialog("What is your name?");
-		
-		//String response = lookUp.helloTo(txt);
-		//JOptionPane.showMessageDialog(null, response);
-
+	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException{	
+		//connect to service broker:
+		lookUp = (RMIInterface) Naming.lookup("//localhost/MyServer");
+		//start gui thread:
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -103,6 +107,8 @@ public class ClientRun extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new CardLayout(0, 0));
 		
+		createMainPage();
+		
 		createLoyaltyEditor();
 		
 		createEnabling(); 
@@ -128,6 +134,12 @@ public class ClientRun extends JFrame {
 		//menu item
 		JMenuItem mntmSettings = new JMenuItem("Settings");
 		mnProgram.add(mntmSettings);
+		mntmSettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				CardLayout cl = (CardLayout)(contentPane.getLayout());
+				cl.show(contentPane, "MainPage");
+			}
+		});
 		//menu item
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener() {
@@ -146,6 +158,8 @@ public class ClientRun extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				CardLayout cl = (CardLayout)(contentPane.getLayout());
 				cl.show(contentPane, "Enabling");
+				//ensure that the button is reset
+				btnAcceptCredit.setEnabled(false);
 			}
 		});
 		mnExternal.add(mntmEnablingInquiry);
@@ -354,7 +368,7 @@ public class ClientRun extends JFrame {
 		textFieldLoyaltyDiscount.setColumns(10);
 	}
 	
-	private void createEnabling(){
+	private void createEnabling(){	
 		
 		pEnabling = new JPanel();
 		pEnabling.setBackground(Color.WHITE);
@@ -383,11 +397,7 @@ public class ClientRun extends JFrame {
 		lblEnablingInquiryForm.setBounds(10, 11, 210, 38);
 		pEnabling.add(lblEnablingInquiryForm);
 		
-		JButton btnSend = new JButton("Send");
-		btnSend.setBounds(71, 288, 89, 23);
-		pEnabling.add(btnSend);
-		
-		JTextArea textAreaResult = new JTextArea();
+		textAreaResult = new JTextArea();
 		textAreaResult.setEditable(false);
 		textAreaResult.setBackground(Color.LIGHT_GRAY);
 		textAreaResult.setBounds(281, 83, 581, 500);
@@ -411,14 +421,65 @@ public class ClientRun extends JFrame {
 		pEnabling.add(textFieldSurname);
 		textFieldSurname.setColumns(10);
 		
-		JButton btnAcceptCredit = new JButton("Accept Credit");
-		btnAcceptCredit.setEnabled(false);
-		btnAcceptCredit.setBounds(742, 594, 120, 23);
-		pEnabling.add(btnAcceptCredit);
-		
 		JLabel lblInquiryResults = new JLabel("Inquiry Results:");
 		lblInquiryResults.setBounds(281, 60, 128, 14);
 		pEnabling.add(lblInquiryResults);
+		
+		btnSend = new JButton("Send");
+		btnSend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//get form data and put it on array list
+				toServer.add(textFieldUserID.getText());
+				toServer.add(textFieldTotal.getText());
+				toServer.add(textFieldFirstName.getText());
+				toServer.add(textFieldSurname.getText());
+				
+				try {
+					//try to get response from server:
+					fromServer.addAll(lookUp.getEnablingResult(toServer));
+					//process response:
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				if(fromServer!=null) {
+					textAreaResult.setText(fromServer.get(0));
+					if(fromServer.get(1).contains("accepted")) {
+						btnAcceptCredit.setEnabled(true);
+						toPayment = Double.parseDouble(fromServer.get(2));
+						toServer.removeAll(toServer);
+						fromServer.removeAll(fromServer);
+					}
+					else if(fromServer.get(1).contains("rejected")) {
+						toServer.removeAll(toServer);
+						fromServer.removeAll(fromServer);
+					}
+					else {
+						toServer.removeAll(toServer);
+						fromServer.removeAll(fromServer);
+					}
+				}	
+			}
+		});
+		btnSend.setBounds(71, 288, 89, 23);
+		pEnabling.add(btnSend);
+		
+		btnAcceptCredit = new JButton("Accept Credit");
+		btnAcceptCredit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					btnAcceptCredit.setEnabled(false);
+					lookUp.payWithEnabling(toPayment);	
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		btnAcceptCredit.setEnabled(false);
+		btnAcceptCredit.setBounds(742, 594, 120, 23);
+		pEnabling.add(btnAcceptCredit);
 	}
 	
 	private void createStockReport(){
@@ -454,18 +515,86 @@ public class ClientRun extends JFrame {
 				
 			}
 		});
-		btnUpdate.setBounds(94, 7, 89, 23);
+		btnUpdate.setBounds(94, 7, 85, 23);
 		pStockReport.add(btnUpdate);
+		
+		JLabel lblAddItem = new JLabel("Add New Item");
+		lblAddItem.setBounds(186, 11, 85, 14);
+		pStockReport.add(lblAddItem);
+		
+		JButton btnAdd = new JButton("Add Item");
+		btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {	
+				
+				String item = textFieldItemName.getText();
+				double price = Double.parseDouble(textFieldPrice.getText());
+				double transportCost = Double.parseDouble(textFieldDelivery.getText());
+				int qty = Integer.parseInt(textFieldPrice.getText());
+				int maxItem = Integer.parseInt(textFieldQty.getText());			
+				
+				try {
+					
+					lookUp.addItemToWarehouse(item, price, transportCost, maxItem);
+					textFieldItemName.setText("");
+					textFieldPrice.setText("");
+					textFieldDelivery.setText("");
+					textFieldPrice.setText("");
+					textFieldQty.setText("");
+					
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+				
+			}
+		});
+		btnAdd.setBounds(272, 7, 85, 23);
+		pStockReport.add(btnAdd);
+		
+		JLabel lblName = new JLabel("Name:");
+		lblName.setBounds(361, 11, 45, 14);
+		pStockReport.add(lblName);
+		
+		textFieldItemName = new JTextField();
+		textFieldItemName.setBounds(406, 11, 104, 20);
+		pStockReport.add(textFieldItemName);
+		
+		JLabel lblQty = new JLabel("Max Qty:");
+		lblQty.setBounds(512, 11, 50, 14);
+		pStockReport.add(lblQty);
+		
+		textFieldQty = new JTextField();
+		textFieldQty.setBounds(563, 11, 50, 20);
+		pStockReport.add(textFieldQty);
+		
+		JLabel lblPrice = new JLabel("Price:");
+		lblPrice.setBounds(614, 11, 45, 14);
+		pStockReport.add(lblPrice);
+		
+		textFieldPrice = new JTextField();
+		textFieldPrice.setBounds(665, 11, 50, 20);
+		pStockReport.add(textFieldPrice);
+		
+		JLabel lblDel = new JLabel("Delivery:");
+		lblDel.setBounds(716, 11, 50, 14);
+		pStockReport.add(lblDel);
+		
+		textFieldDelivery = new JTextField();
+		textFieldDelivery.setBounds(767, 11, 50, 20);
+		pStockReport.add(textFieldDelivery);
+		
 	}
 	
 	private void createShopReport(){
 		pShopReport = new JPanel();
 		pShopReport.setLayout(null);
-		pShopReport.setBackground(Color.LIGHT_GRAY);
+		pShopReport.setBackground(Color.WHITE);
 		contentPane.add(pShopReport, "ShopReport");
 		
 		JLabel lblShopReport = new JLabel("Shop Report");
-		lblShopReport.setBackground(Color.LIGHT_GRAY);
+		lblShopReport.setBackground(Color.WHITE);
 		lblShopReport.setBounds(20, 11, 352, 14);
 		pShopReport.add(lblShopReport);
 		
@@ -473,5 +602,17 @@ public class ClientRun extends JFrame {
 		textAreaShopReport.setEditable(false);
 		textAreaShopReport.setBounds(20, 36, 968, 650);
 		pShopReport.add(textAreaShopReport);
+	}
+	
+	private void createMainPage(){
+		pMain = new JPanel();
+		pMain.setLayout(null);
+		pMain.setBackground(Color.WHITE);
+		contentPane.add(pMain, "MainPage");
+		
+		JLabel lblWelcome = new JLabel("Welcome to the prototype, please select option from the toolbar above.");
+		lblWelcome.setBackground(Color.WHITE);
+		lblWelcome.setBounds(20, 11, 500, 14);
+		pMain.add(lblWelcome);
 	}
 }

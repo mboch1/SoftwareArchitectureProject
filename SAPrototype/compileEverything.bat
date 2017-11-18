@@ -1,0 +1,1 @@
+javac -cp . src\com\registry\RMIInterface.java src\com\server\Database.java src\com\server\ServerStart.java src\com\client\ClientRun.java
