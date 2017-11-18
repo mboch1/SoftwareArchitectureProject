@@ -12,5 +12,14 @@ public interface RMIInterface extends Remote {
 	
 	//warehouse:
 	public void addItemToWarehouse(String item, double price, double transportCost, int maxItem) throws RemoteException;
+	ArrayList<String> getItemNames() throws RemoteException;
+	ArrayList<Double> getItemPrices() throws RemoteException;
+	ArrayList<Double> getTransportCost() throws RemoteException;
+	ArrayList<Integer> getItemMaxQty() throws RemoteException;
+	ArrayList<Integer> getItemTotalSold() throws RemoteException;
+	ArrayList<Integer> getItemNumber() throws RemoteException;
+	ArrayList<Boolean> getPromo1() throws RemoteException;
+	ArrayList<Boolean> getPromo2() throws RemoteException;
+	ArrayList<Boolean> getPromo3() throws RemoteException;
 	
 }
