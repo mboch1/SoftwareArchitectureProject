@@ -11,3 +11,9 @@ Shovel	0.10	0.01	2	40	500	false	false	true
 Bag	0.10	0.01	854	600	4000	false	true	false
 Stones(50kg)	1.21	1.00	120	800	5000	true	false	true
 Racks	12.00	1.59	100	54030	2000	false	true	false	
+Clippers	5.50	0.90	51	500	1000	true	false	false
+Tounges	4.19	0.51	1500	3000	2000	true	false	false
+Scissors	15.00	1.00	500	842	2000	true	false	false
+Pitchfork	12.50	1.10	31	100	300	false	true	false
+Chisel	0.10	0.01	854	600	4000	false	true	false
+Chainsaw	100.00	8.55	100	200	300	false	true	false

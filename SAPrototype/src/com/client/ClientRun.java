@@ -61,10 +61,10 @@ public class ClientRun extends JFrame {
 	private JPanel pSpecialOffer;
 	private JTextField textFieldX;
 	private JTextField textFieldY;
-	private JTextField textField_3;
+	private JTextField textFieldDisc;
 	private JTextField textFieldClientName;
 	private JTextField textFieldClientSurname;
-	private JTextField textFieldAddress1;
+	private JTextField textFieldClientID;
 	private JTextField textFieldAddress2;
 	private JTextField textFieldCity;
 	private JTextField textFieldContact;
@@ -78,14 +78,18 @@ public class ClientRun extends JFrame {
 	private JButton btnAcceptCredit;
 	// for enabling:
 	private double toPayment = 0;
+	private int defaultX = 0;
+	private int defaultY = 0;
+	private int defaultDiscount = 0;
+
 	private ArrayList<String> toServer = new ArrayList<>();
 	private ArrayList<String> fromServer = new ArrayList<>();
 	// for remote object database:
 	private static Database db;
 	// for stock status:
 	private String[] header = { "ID", "Name", "Price", "In Stock", "Sold Total", "Delivery Cost", "Max Stock",
-			"X for Y", "Free Delivery", "Loyalty Discount" };
-	private String[][] data = new String[500][10];
+			"X for Y", "X value", "Y value", "Discount", "Discount value", "Loyalty Discount" };
+	private String[][] data = new String[500][13];
 	private ArrayList<String> items = new ArrayList<>();
 	private ArrayList<Double> prices = new ArrayList<>();
 	private ArrayList<Double> delivery = new ArrayList<>();
@@ -93,7 +97,10 @@ public class ClientRun extends JFrame {
 	private ArrayList<Integer> totalSold = new ArrayList<>();
 	private ArrayList<Integer> maxStock = new ArrayList<>();
 	private ArrayList<Boolean> promotion1 = new ArrayList<>();
+	private ArrayList<Integer> promotion1X = new ArrayList<>();
+	private ArrayList<Integer> promotion1Y = new ArrayList<>();
 	private ArrayList<Boolean> promotion2 = new ArrayList<>();
+	private ArrayList<Double> discount = new ArrayList<>();
 	private ArrayList<Boolean> promotion3 = new ArrayList<>();
 
 	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
@@ -221,7 +228,7 @@ public class ClientRun extends JFrame {
 			}
 		});
 		mnShopManager.add(mntmSpecialOfferEditor);
-
+		// menu item
 		JMenuItem mntmLoyaltyCard = new JMenuItem("Loyalty Card");
 		mntmLoyaltyCard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -233,7 +240,7 @@ public class ClientRun extends JFrame {
 	}
 
 	// create cards:
-	// to do:
+	// partially working (base functionality)
 	private void createSpecialOffer() {
 		pSpecialOffer = new JPanel();
 		pSpecialOffer.setLayout(null);
@@ -262,9 +269,9 @@ public class ClientRun extends JFrame {
 		pSpecialOffer.add(chckbxXForY);
 
 		textFieldX = new JTextField();
+		textFieldX.setColumns(10);
 		textFieldX.setBounds(386, 74, 30, 20);
 		pSpecialOffer.add(textFieldX);
-		textFieldX.setColumns(10);
 
 		JLabel lblXQuanity = new JLabel("X quanity");
 		lblXQuanity.setBounds(380, 48, 46, 14);
@@ -283,16 +290,33 @@ public class ClientRun extends JFrame {
 		chckbxDiscount.setBounds(240, 128, 120, 23);
 		pSpecialOffer.add(chckbxDiscount);
 
-		textField_3 = new JTextField();
-		textField_3.setColumns(10);
-		textField_3.setBounds(386, 129, 30, 20);
-		pSpecialOffer.add(textField_3);
+		textFieldDisc = new JTextField();
+		textFieldDisc.setColumns(10);
+		textFieldDisc.setBounds(386, 129, 30, 20);
+		pSpecialOffer.add(textFieldDisc);
 
 		JLabel lblSetDiscount = new JLabel("Discount %");
 		lblSetDiscount.setBounds(380, 106, 114, 14);
 		pSpecialOffer.add(lblSetDiscount);
 
-		JButton btnSetPromotion = new JButton("Set Promotion");
+		JButton btnSetPromotion = new JButton("Change Settings");
+		btnSetPromotion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int x = Integer.parseInt(textFieldX.getText());
+				int y = Integer.parseInt(textFieldY.getText());
+				double d = Double.parseDouble(textFieldDisc.getText());
+				try {
+					lookUp.updateDefaultOptions(x, y, d);
+					textFieldX.setText("");
+					textFieldY.setText("");
+					textFieldDisc.setText("");
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		});
 		btnSetPromotion.setBounds(230, 327, 130, 23);
 		pSpecialOffer.add(btnSetPromotion);
 
@@ -310,7 +334,7 @@ public class ClientRun extends JFrame {
 
 	}
 
-	// to do:
+	// working, base functionality
 	private void createLoyaltyEditor() {
 		pLoyaltyEditor = new JPanel();
 		pLoyaltyEditor.setBackground(Color.WHITE);
@@ -339,21 +363,22 @@ public class ClientRun extends JFrame {
 		pLoyaltyEditor.add(textFieldClientSurname);
 		textFieldClientSurname.setColumns(10);
 
-		JLabel lblAddress1 = new JLabel("Address 1");
-		lblAddress1.setBounds(10, 158, 140, 14);
-		pLoyaltyEditor.add(lblAddress1);
+		JLabel lblID = new JLabel("Client ID");
+		lblID.setBounds(10, 158, 140, 14);
+		pLoyaltyEditor.add(lblID);
 
-		textFieldAddress1 = new JTextField();
-		textFieldAddress1.setBounds(10, 183, 230, 20);
-		pLoyaltyEditor.add(textFieldAddress1);
-		textFieldAddress1.setColumns(10);
+		textFieldClientID = new JTextField();
+		textFieldClientID.setBounds(10, 183, 230, 20);
+		pLoyaltyEditor.add(textFieldClientID);
+		textFieldClientID.setColumns(10);
 
-		JLabel lblAddress2 = new JLabel("Address 2");
-		lblAddress2.setBounds(10, 215, 140, 14);
-		pLoyaltyEditor.add(lblAddress2);
+		JLabel lblAddress = new JLabel("Address");
+		lblAddress.setBounds(10, 215, 140, 14);
+		pLoyaltyEditor.add(lblAddress);
 
 		textFieldAddress2 = new JTextField();
 		textFieldAddress2.setBounds(10, 240, 230, 20);
+		textFieldAddress2.setEnabled(false);
 		pLoyaltyEditor.add(textFieldAddress2);
 		textFieldAddress2.setColumns(10);
 
@@ -363,6 +388,7 @@ public class ClientRun extends JFrame {
 
 		textFieldCity = new JTextField();
 		textFieldCity.setBounds(10, 296, 230, 20);
+		textFieldCity.setEnabled(false);
 		pLoyaltyEditor.add(textFieldCity);
 		textFieldCity.setColumns(10);
 
@@ -372,14 +398,35 @@ public class ClientRun extends JFrame {
 
 		textFieldContact = new JTextField();
 		textFieldContact.setBounds(10, 356, 230, 20);
+		textFieldContact.setEnabled(false);
 		pLoyaltyEditor.add(textFieldContact);
 		textFieldContact.setColumns(10);
 
 		JButton btnSubmit = new JButton("Submit");
+		btnSubmit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					String n = textFieldClientName.getText();
+					String s = textFieldClientSurname.getText();
+					double d = Double.parseDouble(textFieldLoyaltyDiscount.getText());
+					int i = Integer.parseInt(textFieldClientID.getText());
+					lookUp.setClientDiscountCard(n, s, d, i);
+
+					textFieldClientName.setText("");
+					textFieldClientSurname.setText("");
+					textFieldLoyaltyDiscount.setText("");
+					textFieldClientID.setText("");
+					
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		btnSubmit.setBounds(100, 398, 140, 23);
 		pLoyaltyEditor.add(btnSubmit);
 
 		JButton btnSetDiscount = new JButton("Set Discount");
+
 		btnSetDiscount.setBounds(437, 398, 140, 23);
 		pLoyaltyEditor.add(btnSetDiscount);
 
@@ -508,20 +555,23 @@ public class ClientRun extends JFrame {
 
 	// working:
 	private void updateTableModel() {
-		// PREPARE DATA TO INSERT:
-		if (items.size() > 0) {
-			items.removeAll(items);
-			prices.removeAll(prices);
-			delivery.removeAll(delivery);
-			quanity.removeAll(quanity);
-			totalSold.removeAll(totalSold);
-			maxStock.removeAll(maxStock);
-			promotion1.removeAll(promotion1);
-			promotion2.removeAll(promotion2);
-			promotion3.removeAll(promotion3);
-		}
-
 		try {
+			// PREPARE DATA TO INSERT:
+			if (items.size() > 0) {
+				items.removeAll(items);
+				prices.removeAll(prices);
+				delivery.removeAll(delivery);
+				quanity.removeAll(quanity);
+				totalSold.removeAll(totalSold);
+				maxStock.removeAll(maxStock);
+				promotion1.removeAll(promotion1);
+				promotion1X.removeAll(promotion1X);
+				promotion1Y.removeAll(promotion1Y);
+				promotion2.removeAll(promotion2);
+				discount.removeAll(discount);
+				promotion3.removeAll(promotion3);
+			}
+
 			items.addAll(lookUp.getItemNames());
 			prices.addAll(lookUp.getItemPrices());
 			delivery.addAll(lookUp.getTransportCost());
@@ -529,7 +579,10 @@ public class ClientRun extends JFrame {
 			totalSold.addAll(lookUp.getItemTotalSold());
 			maxStock.addAll(lookUp.getItemMaxQty());
 			promotion1.addAll(lookUp.getPromo1());
+			promotion1X.addAll(lookUp.getPromo1X());
+			promotion1Y.addAll(lookUp.getPromo1Y());
 			promotion2.addAll(lookUp.getPromo2());
+			discount.addAll(lookUp.getPromo2Discount());
 			promotion3.addAll(lookUp.getPromo3());
 
 			int i = items.size();
@@ -549,16 +602,21 @@ public class ClientRun extends JFrame {
 					data[j][7] = "false";
 				}
 
+				data[j][8] = Integer.toString(promotion1X.get(j));
+				data[j][9] = Integer.toString(promotion1Y.get(j));
+
 				if (promotion2.get(j) == true) {
-					data[j][8] = "true";
+					data[j][10] = "true";
 				} else {
-					data[j][8] = "false";
+					data[j][10] = "false";
 				}
 
+				data[j][11] = Double.toString(discount.get(j));
+
 				if (promotion3.get(j) == true) {
-					data[j][9] = "true";
+					data[j][12] = "true";
 				} else {
-					data[j][9] = "false";
+					data[j][12] = "false";
 				}
 			}
 		} catch (RemoteException e) {
@@ -593,43 +651,10 @@ public class ClientRun extends JFrame {
 		lblStockReport.setBounds(10, 11, 74, 14);
 		pStockReport.add(lblStockReport);
 
+		// data from database:
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				
-				ArrayList<String> item = new ArrayList<>();
-				ArrayList<Double> pr = new ArrayList<>();
-				ArrayList<Double> del = new ArrayList<>();
-				ArrayList<Integer> qty = new ArrayList<>();
-				ArrayList<Integer> ts = new ArrayList<>();
-				ArrayList<Integer> maxSt = new ArrayList<>();
-				ArrayList<Boolean> p1 = new ArrayList<>();
-				ArrayList<Boolean> p2 = new ArrayList<>();
-				ArrayList<Boolean> p3 = new ArrayList<>();
-				
-				if(items.size()>0) {
-					//if table ID is not null do:
-					for(int i = 0; i<items.size(); i++){
-						item.add(table.getValueAt(i, 1).toString());
-						pr.add(Double.parseDouble(table.getValueAt(i, 2).toString()));
-						qty.add(Integer.parseInt(table.getValueAt(i, 3).toString()));
-						ts.add(Integer.parseInt(table.getValueAt(i, 4).toString()));
-						del.add(Double.parseDouble(table.getValueAt(i, 5).toString()));
-						maxSt.add(Integer.parseInt(table.getValueAt(i, 6).toString()));
-						p1.add(Boolean.parseBoolean(table.getValueAt(i, 7).toString()));
-						p2.add(Boolean.parseBoolean(table.getValueAt(i, 8).toString()));
-						p3.add(Boolean.parseBoolean(table.getValueAt(i, 9).toString()));
-					}
-					
-					//send to server:
-					try {
-						lookUp.updateItemDB(item, pr, del, qty, ts, maxSt, p1, p2, p3);
-					} catch (RemoteException e) {
-						e.printStackTrace();
-					}
-					
-				}
-
 				updateTableModel();
 				table.revalidate();
 				table.repaint();
@@ -703,9 +728,60 @@ public class ClientRun extends JFrame {
 		textFieldDelivery.setBounds(767, 11, 50, 20);
 		pStockReport.add(textFieldDelivery);
 
+		// send data to database:
+		JButton btnSend = new JButton("Send Changes");
+		btnSend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ArrayList<String> item = new ArrayList<>();
+				ArrayList<Double> pr = new ArrayList<>();
+				ArrayList<Double> del = new ArrayList<>();
+				ArrayList<Integer> qty = new ArrayList<>();
+				ArrayList<Integer> ts = new ArrayList<>();
+				ArrayList<Integer> maxSt = new ArrayList<>();
+				ArrayList<Boolean> p1 = new ArrayList<>();
+				ArrayList<Integer> x = new ArrayList<>();
+				ArrayList<Integer> y = new ArrayList<>();
+				ArrayList<Boolean> p2 = new ArrayList<>();
+				ArrayList<Double> disc = new ArrayList<>();
+				ArrayList<Boolean> p3 = new ArrayList<>();
+
+				if (items.size() > 0) {
+					// if table ID is not null do:
+					for (int i = 0; i < items.size(); i++) {
+						item.add(table.getValueAt(i, 1).toString());
+						pr.add(Double.parseDouble(table.getValueAt(i, 2).toString()));
+						qty.add(Integer.parseInt(table.getValueAt(i, 3).toString()));
+						ts.add(Integer.parseInt(table.getValueAt(i, 4).toString()));
+						del.add(Double.parseDouble(table.getValueAt(i, 5).toString()));
+						maxSt.add(Integer.parseInt(table.getValueAt(i, 6).toString()));
+						p1.add(Boolean.parseBoolean(table.getValueAt(i, 7).toString()));
+						x.add(Integer.parseInt(table.getValueAt(i, 8).toString()));
+						y.add(Integer.parseInt(table.getValueAt(i, 9).toString()));
+						p2.add(Boolean.parseBoolean(table.getValueAt(i, 10).toString()));
+						disc.add(Double.parseDouble(table.getValueAt(i, 11).toString()));
+						p3.add(Boolean.parseBoolean(table.getValueAt(i, 12).toString()));
+					}
+
+					// send to server:
+					try {
+						lookUp.updateItemDB(item, pr, del, qty, ts, maxSt, p1, p2, p3, x, y, disc);
+						updateTableModel();
+						table.validate();
+						table.repaint();
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
+		});
+
+		btnSend.setBounds(820, 7, 90, 23);
+		pStockReport.add(btnSend);
+
 	}
 
-	// to do:
+	// to do: - GENERATE CLIENTS "accounting DB" - then create report based on data
 	private void createShopReport() {
 		pShopReport = new JPanel();
 		pShopReport.setLayout(null);

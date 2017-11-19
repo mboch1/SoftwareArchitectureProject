@@ -1,10 +1,7 @@
 package com.server;
 
 import java.rmi.Naming;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Random;
@@ -142,14 +139,47 @@ public class ServerStart extends UnicastRemoteObject implements RMIInterface {
 		tP3.addAll(db.getPromotion3());
 		return tP3;
 	}
+	
+	@Override
+	public ArrayList<Integer> getPromo1X() throws RemoteException {
+		ArrayList<Integer> gP1X = new ArrayList<>();
+		gP1X.addAll(db.getPromotion1X());
+		return gP1X;
+	}
+
+	@Override
+	public ArrayList<Integer> getPromo1Y() throws RemoteException {
+		ArrayList<Integer> gP1Y = new ArrayList<>();
+		gP1Y.addAll(db.getPromotion1Y());
+		return gP1Y;
+	}
+
+	@Override
+	public ArrayList<Double> getPromo2Discount() throws RemoteException {
+		ArrayList<Double> dsc = new ArrayList<>();
+		dsc.addAll(db.getPromotion2Discount());
+		return dsc;
+	}
 
 	@Override
 	public void updateItemDB(ArrayList<String> items, ArrayList<Double> prices, ArrayList<Double> delivery,
 			ArrayList<Integer> quanity, ArrayList<Integer> totalSold, ArrayList<Integer> maxStock,
-			ArrayList<Boolean> promotion1, ArrayList<Boolean> promotion2, ArrayList<Boolean> promotion3)
+			ArrayList<Boolean> promotion1, ArrayList<Boolean> promotion2, ArrayList<Boolean> promotion3,  ArrayList<Integer> xUpdate, ArrayList<Integer> yUpdate, ArrayList<Double> discountUpdate)
 			throws RemoteException {
-			db.updateDB(items, prices, delivery, quanity, totalSold, maxStock, promotion1, promotion2, promotion3);
+			db.updateDB(items, prices, delivery, quanity, totalSold, maxStock, promotion1, promotion2, promotion3, xUpdate, yUpdate, discountUpdate);
 			System.out.println("Database Updated!");
+	}
+
+	@Override
+	public void updateDefaultOptions(int x, int y, double d) throws RemoteException {
+		db.setDefaults(x, y, d);
+		System.out.println("Default settings for promotions changed.");
+	}
+
+	@Override
+	public void setClientDiscountCard(String n, String s, double d, int i) throws RemoteException {
+		db.addNewClient(n, s, d, i);
+		System.out.println("New Client loyalty card added!");
 	}
 
 }

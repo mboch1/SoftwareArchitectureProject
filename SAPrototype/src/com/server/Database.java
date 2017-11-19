@@ -5,7 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.StringTokenizer;
+
+import javax.mail.*;
+import javax.mail.internet.*;
+
+import com.sun.mail.smtp.SMTPTransport;
 
 public class Database {
 
@@ -17,23 +23,45 @@ public class Database {
 	private ArrayList<Integer> totalSold;
 	private ArrayList<Integer> maxStock;
 	private ArrayList<Boolean> promotion1;
+	private ArrayList<Integer> x;
+	private ArrayList<Integer> y;
 	private ArrayList<Boolean> promotion2;
+	private ArrayList<Double> discount;
 	private ArrayList<Boolean> promotion3;
-
+	// other
+	private ArrayList<String> name;
+	private ArrayList<Integer> stock;
+	private ArrayList<Integer> max;
+	private ArrayList<String> toSend;
+	private ArrayList<Integer> id;
+	// stock watch
+	double stockWatch = 0.1;
+	//promotions default values
+	private int defaultX = 0;
+	private int defaultY = 0;
+	private double defaultDiscount = 0.0;
 	// transactions:
 	private ArrayList<Double> transactions;
-	private String handshake = "no shake";
-	// promotions settings
-	// promotion 1 settings:
-
-	// promotion 2 settings:
-
-	// promotion 3 settings:
-
 	// users:
-
+	private ArrayList<String> userName;
+	private ArrayList<String> userSurname;
+	private ArrayList<Double> userDiscount;
+	private ArrayList<Integer> cardNumber;
+	
 	// on first use populate DB:
 	public Database() {
+		//for users data:
+		userName = new ArrayList<>();
+		userSurname = new ArrayList<>();
+		userDiscount = new ArrayList<>();
+		cardNumber = new ArrayList<>();
+		//for processing:
+		stock = new ArrayList<>();
+		name = new ArrayList<>();
+		max = new ArrayList<>();
+		id = new ArrayList<>();
+		toSend = new ArrayList<>();
+		//for database:
 		items = new ArrayList<>();
 		prices = new ArrayList<>();
 		delivery = new ArrayList<>();
@@ -41,7 +69,10 @@ public class Database {
 		totalSold = new ArrayList<>();
 		maxStock = new ArrayList<>();
 		promotion1 = new ArrayList<>();
+		x = new ArrayList<>();
+		y = new ArrayList<>();
 		promotion2 = new ArrayList<>();
+		discount = new ArrayList<>();
 		promotion3 = new ArrayList<>();
 		transactions = new ArrayList<>();
 		populate();
@@ -60,7 +91,6 @@ public class Database {
 
 			while ((line = bufferedReader.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, "\t");
-
 				items.add(st.nextToken());
 				prices.add(Double.parseDouble(st.nextToken()));
 				delivery.add(Double.parseDouble(st.nextToken()));
@@ -68,7 +98,10 @@ public class Database {
 				totalSold.add(Integer.parseInt(st.nextToken()));
 				maxStock.add(Integer.parseInt(st.nextToken()));
 				promotion1.add(Boolean.parseBoolean(st.nextToken()));
+				x.add(defaultX);
+				y.add(defaultY);
 				promotion2.add(Boolean.parseBoolean(st.nextToken()));
+				discount.add(defaultDiscount);
 				promotion3.add(Boolean.parseBoolean(st.nextToken()));
 			}
 			System.out.println("Database Populated");
@@ -111,8 +144,20 @@ public class Database {
 		return promotion1;
 	}
 
+	public ArrayList<Integer> getPromotion1X() {
+		return x;
+	}
+
+	public ArrayList<Integer> getPromotion1Y() {
+		return y;
+	}
+
 	public ArrayList<Boolean> getPromotion2() {
 		return promotion2;
+	}
+
+	public ArrayList<Double> getPromotion2Discount() {
+		return discount;
 	}
 
 	public ArrayList<Boolean> getPromotion3() {
@@ -121,6 +166,32 @@ public class Database {
 
 	public ArrayList<Double> getTransactions() {
 		return transactions;
+	}
+
+	public double getStockWatch() {
+		return stockWatch;
+	}
+
+	// setters:
+	public void addNewClient(String n, String s, double d, int i) {
+		userName.add(n);
+		userSurname.add(s);
+		userDiscount.add(d);
+		cardNumber.add(i);
+	}
+	
+	public void setStockReplenish() {
+		for (int i = 0; i < id.size(); i++) {
+			quanity.set(id.get(i), maxStock.get(id.get(i)));
+		}
+		System.out.println("Stock replaced!");
+		id.removeAll(id);
+	}
+	
+	public void setDefaults(int dX, int dY, double dDiscount) {
+		defaultX = dX;
+		defaultY = dY;
+		defaultDiscount = dDiscount;
 	}
 
 	// delete:
@@ -132,33 +203,19 @@ public class Database {
 		totalSold.remove(i);
 		maxStock.remove(i);
 		promotion1.remove(i);
+		x.remove(i);
+		y.remove(i);
 		promotion2.remove(i);
+		discount.remove(i);
 		promotion3.remove(i);
 	}
 
-	// setters:
-	public void updateObjects(int[] id, String[] item, Double[] price, Double[] transportCost, int[] qty, int[] maxItem,
-			boolean[] prom1, boolean[] prom2, boolean[] prom3) {
-		int counter = 0;
-		// iterate through the request:
-		while (counter < id.length) {
-			items.set(id[counter], item[counter]);
-			prices.set(id[counter], price[counter]);
-			delivery.set(id[counter], transportCost[counter]);
-			quanity.set(id[counter], qty[counter]);
-			maxStock.set(id[counter], maxItem[counter]);
-			promotion1.set(id[counter], prom1[counter]);
-			promotion2.set(id[counter], prom2[counter]);
-			promotion3.set(id[counter], prom3[counter]);
-			counter++;
-		}
-	}
-
-	//update all:
+	// update all:
 	public void updateDB(ArrayList<String> itemsUpdate, ArrayList<Double> pricesUpdate,
 			ArrayList<Double> deliveryUpdate, ArrayList<Integer> quanityUpdate, ArrayList<Integer> totalSoldUpdate,
 			ArrayList<Integer> maxStockUpdate, ArrayList<Boolean> promotion1Update, ArrayList<Boolean> promotion2Update,
-			ArrayList<Boolean> promotion3Update) {
+			ArrayList<Boolean> promotion3Update, ArrayList<Integer> xUpdate, ArrayList<Integer> yUpdate,
+			ArrayList<Double> discountUpdate) {
 		// remove old entries:
 		if (items.size() > 0) {
 			items.removeAll(items);
@@ -168,7 +225,10 @@ public class Database {
 			totalSold.removeAll(totalSold);
 			maxStock.removeAll(maxStock);
 			promotion1.removeAll(promotion1);
+			x.removeAll(x);
+			y.removeAll(y);
 			promotion2.removeAll(promotion2);
+			discount.removeAll(discount);
 			promotion3.removeAll(promotion3);
 		}
 		// add new data from user:
@@ -179,8 +239,13 @@ public class Database {
 		totalSold.addAll(totalSoldUpdate);
 		maxStock.addAll(maxStockUpdate);
 		promotion1.addAll(promotion1Update);
+		x.addAll(xUpdate);
+		y.addAll(yUpdate);
 		promotion2.addAll(promotion2Update);
+		discount.addAll(discountUpdate);
 		promotion3.addAll(promotion3Update);
+		// check stock:
+		checkStock();
 
 	}
 
@@ -199,13 +264,118 @@ public class Database {
 		totalSold.add(0);
 		maxStock.add(maxItem);
 		promotion1.add(false);
+		x.add(defaultX);
+		y.add(defaultY);
 		promotion2.add(false);
+		discount.add(defaultDiscount);
 		promotion3.add(false);
-		System.out.println(items + " " + prices + " " + delivery);
+		// check stock:
+		checkStock();
 	}
 
-	public String handshake() {
-		handshake = "DB Handshake = 1";
-		return handshake;
+	private void checkStock() {
+		// first empty old arrays
+		if (stock.size() > 0) {
+			stock.removeAll(stock);
+			max.removeAll(max);
+			name.removeAll(name);
+			toSend.removeAll(toSend);
+			id.removeAll(id);
+		}
+		// get new data
+		stock.addAll(this.getQuanity());
+		max.addAll(this.getMaxStock());
+		name.addAll(this.getItems());
+
+		// check stock if any item is below set threshold add it to the list
+		for (int i = 0; i < name.size(); i++) {
+			if (stock.get(i) < max.get(i)) {
+				if (max.get(i)*stockWatch > stock.get(i)) {
+					System.out.println(max.get(i)*stockWatch);
+					toSend.add(name.get(i));
+					id.add(i);
+				}
+			}
+		}
+		// once finished checkup routine send email:
+		if (toSend.size() > 0) {
+			sendEmail();
+		}
 	}
+
+	private void sendEmail() {
+		// Recipient's email ID needs to be mentioned.
+		String to = "michalbochenek2@gmail.com";
+		// Sender's email ID needs to be mentioned
+		String from = "michalbochenek2@gmail.com";
+
+		// Get system properties
+		Properties properties = System.getProperties();
+		// Setup mail server
+		properties.setProperty("mail.smtp.from", from);
+		properties.setProperty("mail.smtp.host", "smtp.gmail.com");
+		properties.setProperty("mail.protocol.port", "465");
+		properties.put("mail.smtp.auth", true);
+		properties.put("mail.transport.protocol", "TLS");
+		properties.setProperty("mail.user", "michalbochenek2@gmail.com");
+		properties.setProperty("mail.password", "Redguard7890");
+		properties.put("mail.smtp.socketFactory.port", "465");
+		properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		properties.put("mail.smtp.socketFactory.fallback", "false");
+		properties.put("mail.smtp.starttls.enable", "true");
+
+		// Get the default Session object.
+		Session mailSession = Session.getDefaultInstance(properties, new Authenticator() {
+
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication("michalbochenek2@gmail.com", "Redguard7890");
+			}
+
+		});
+
+		// prepare message text:
+		String stockDataFinal = "List of items ordered: \n";
+		String stockData = "";
+		for (int i = 0; i < toSend.size(); i++) {
+			stockData = stockData + "" + toSend.get(i) + "\n";
+		}
+		// final message
+		stockDataFinal = stockDataFinal + stockData;
+
+		try {
+			// Create a default MimeMessage object.
+			MimeMessage message = new MimeMessage(mailSession);
+
+			// Set From: header field of the header.
+			message.setFrom(new InternetAddress(from));
+			// Set To: header field of the header.
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+			// Set Subject: header field
+			message.setSubject("Low Stock Order");
+			// Now set the actual message
+			message.setText(stockDataFinal);
+			// Send message
+
+			SMTPTransport tr = (SMTPTransport) mailSession.getTransport("smtp");
+			tr.connect();
+			tr.sendMessage(message, message.getAllRecipients());
+
+			System.out.println("Sent message successfully...");
+			// replenish stock in db:
+			System.out.println("Stock Ordered: ");
+			System.out.println(id);
+			orderItems();
+
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// order items, they will appear instantly in DB
+	private void orderItems() {
+		this.setStockReplenish();
+	}
+
+
 }
