@@ -8,6 +8,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,6 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 import com.registry.RMIInterface;
 import com.server.Database;
@@ -230,6 +233,7 @@ public class ClientRun extends JFrame {
 	}
 
 	// create cards:
+	// to do:
 	private void createSpecialOffer() {
 		pSpecialOffer = new JPanel();
 		pSpecialOffer.setLayout(null);
@@ -306,6 +310,7 @@ public class ClientRun extends JFrame {
 
 	}
 
+	// to do:
 	private void createLoyaltyEditor() {
 		pLoyaltyEditor = new JPanel();
 		pLoyaltyEditor.setBackground(Color.WHITE);
@@ -388,6 +393,7 @@ public class ClientRun extends JFrame {
 		textFieldLoyaltyDiscount.setColumns(10);
 	}
 
+	// working:
 	private void createEnabling() {
 
 		pEnabling = new JPanel();
@@ -500,6 +506,7 @@ public class ClientRun extends JFrame {
 		pEnabling.add(btnAcceptCredit);
 	}
 
+	// working:
 	private void updateTableModel() {
 		// PREPARE DATA TO INSERT:
 		if (items.size() > 0) {
@@ -559,23 +566,23 @@ public class ClientRun extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	
+
+	// working
 	private void createStockReport() {
 		pStockReport = new JPanel();
 		pStockReport.setBackground(Color.WHITE);
 		contentPane.add(pStockReport, "StockReport");
 		pStockReport.setLayout(null);
-
+		// prepare data to be used first time:
 		updateTableModel();
-
+		// create table with default model:
 		table = new JTable(data, header);
 		table.setCellSelectionEnabled(true);
 		table.setBorder(new LineBorder(new Color(0, 0, 0), 3));
-		table.setAutoResizeMode( JTable.AUTO_RESIZE_ALL_COLUMNS );
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setPreferredScrollableViewportSize(new Dimension(968, 680));
 		table.setFillsViewportHeight(true);
-		//table.setModel(new DefaultTableModel(data, header));
 		table.setBounds(10, 50, 968, 680);
 		table.doLayout();
 		scrollPane = new JScrollPane(table);
@@ -589,11 +596,46 @@ public class ClientRun extends JFrame {
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				
+				ArrayList<String> item = new ArrayList<>();
+				ArrayList<Double> pr = new ArrayList<>();
+				ArrayList<Double> del = new ArrayList<>();
+				ArrayList<Integer> qty = new ArrayList<>();
+				ArrayList<Integer> ts = new ArrayList<>();
+				ArrayList<Integer> maxSt = new ArrayList<>();
+				ArrayList<Boolean> p1 = new ArrayList<>();
+				ArrayList<Boolean> p2 = new ArrayList<>();
+				ArrayList<Boolean> p3 = new ArrayList<>();
+				
+				if(items.size()>0) {
+					//if table ID is not null do:
+					for(int i = 0; i<items.size(); i++){
+						item.add(table.getValueAt(i, 1).toString());
+						pr.add(Double.parseDouble(table.getValueAt(i, 2).toString()));
+						qty.add(Integer.parseInt(table.getValueAt(i, 3).toString()));
+						ts.add(Integer.parseInt(table.getValueAt(i, 4).toString()));
+						del.add(Double.parseDouble(table.getValueAt(i, 5).toString()));
+						maxSt.add(Integer.parseInt(table.getValueAt(i, 6).toString()));
+						p1.add(Boolean.parseBoolean(table.getValueAt(i, 7).toString()));
+						p2.add(Boolean.parseBoolean(table.getValueAt(i, 8).toString()));
+						p3.add(Boolean.parseBoolean(table.getValueAt(i, 9).toString()));
+					}
+					
+					//send to server:
+					try {
+						lookUp.updateItemDB(item, pr, del, qty, ts, maxSt, p1, p2, p3);
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+					
+				}
+
 				updateTableModel();
 				table.revalidate();
 				table.repaint();
 			}
 		});
+
 		btnUpdate.setBounds(94, 7, 85, 23);
 		pStockReport.add(btnUpdate);
 
@@ -615,12 +657,12 @@ public class ClientRun extends JFrame {
 					textFieldPrice.setText("");
 					textFieldDelivery.setText("");
 					textFieldQty.setText("");
-					
+
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				updateTableModel();
 				table.validate();
 				table.repaint();
@@ -663,6 +705,7 @@ public class ClientRun extends JFrame {
 
 	}
 
+	// to do:
 	private void createShopReport() {
 		pShopReport = new JPanel();
 		pShopReport.setLayout(null);
@@ -680,6 +723,7 @@ public class ClientRun extends JFrame {
 		pShopReport.add(textAreaShopReport);
 	}
 
+	// working:
 	private void createMainPage() {
 		pMain = new JPanel();
 		pMain.setLayout(null);

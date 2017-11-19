@@ -143,4 +143,13 @@ public class ServerStart extends UnicastRemoteObject implements RMIInterface {
 		return tP3;
 	}
 
+	@Override
+	public void updateItemDB(ArrayList<String> items, ArrayList<Double> prices, ArrayList<Double> delivery,
+			ArrayList<Integer> quanity, ArrayList<Integer> totalSold, ArrayList<Integer> maxStock,
+			ArrayList<Boolean> promotion1, ArrayList<Boolean> promotion2, ArrayList<Boolean> promotion3)
+			throws RemoteException {
+			db.updateDB(items, prices, delivery, quanity, totalSold, maxStock, promotion1, promotion2, promotion3);
+			System.out.println("Database Updated!");
+	}
+
 }

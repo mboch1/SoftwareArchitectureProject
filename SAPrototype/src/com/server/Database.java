@@ -49,7 +49,7 @@ public class Database {
 
 	// read from file dataDB.txt in root folder:
 	private void populate() {
-		
+
 		final String filename = "D:\\WorkSpace\\SoftwareArchitectureProject\\SAPrototype\\dataDB.txt";
 
 		String line = null;
@@ -60,7 +60,7 @@ public class Database {
 
 			while ((line = bufferedReader.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(line, "\t");
-				
+
 				items.add(st.nextToken());
 				prices.add(Double.parseDouble(st.nextToken()));
 				delivery.add(Double.parseDouble(st.nextToken()));
@@ -154,6 +154,36 @@ public class Database {
 		}
 	}
 
+	//update all:
+	public void updateDB(ArrayList<String> itemsUpdate, ArrayList<Double> pricesUpdate,
+			ArrayList<Double> deliveryUpdate, ArrayList<Integer> quanityUpdate, ArrayList<Integer> totalSoldUpdate,
+			ArrayList<Integer> maxStockUpdate, ArrayList<Boolean> promotion1Update, ArrayList<Boolean> promotion2Update,
+			ArrayList<Boolean> promotion3Update) {
+		// remove old entries:
+		if (items.size() > 0) {
+			items.removeAll(items);
+			prices.removeAll(prices);
+			delivery.removeAll(delivery);
+			quanity.removeAll(quanity);
+			totalSold.removeAll(totalSold);
+			maxStock.removeAll(maxStock);
+			promotion1.removeAll(promotion1);
+			promotion2.removeAll(promotion2);
+			promotion3.removeAll(promotion3);
+		}
+		// add new data from user:
+		items.addAll(itemsUpdate);
+		prices.addAll(pricesUpdate);
+		delivery.addAll(deliveryUpdate);
+		quanity.addAll(quanityUpdate);
+		totalSold.addAll(totalSoldUpdate);
+		maxStock.addAll(maxStockUpdate);
+		promotion1.addAll(promotion1Update);
+		promotion2.addAll(promotion2Update);
+		promotion3.addAll(promotion3Update);
+
+	}
+
 	// add new
 	public void addTransaction(double transaction) {
 		System.out.println("Enabling transaction adding to the system...");
@@ -171,7 +201,7 @@ public class Database {
 		promotion1.add(false);
 		promotion2.add(false);
 		promotion3.add(false);
-		System.out.println(items+" "+prices+" "+delivery);
+		System.out.println(items + " " + prices + " " + delivery);
 	}
 
 	public String handshake() {
