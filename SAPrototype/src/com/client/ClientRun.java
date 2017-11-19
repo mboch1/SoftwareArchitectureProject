@@ -5,11 +5,8 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,16 +27,11 @@ import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-
-import com.registry.RMIInterface;
-import com.server.Database;
-
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
+import com.registry.RMIInterface;
 
 public class ClientRun extends JFrame {
 
@@ -78,14 +70,9 @@ public class ClientRun extends JFrame {
 	private JButton btnAcceptCredit;
 	// for enabling:
 	private double toPayment = 0;
-	private int defaultX = 0;
-	private int defaultY = 0;
-	private int defaultDiscount = 0;
-
+	
 	private ArrayList<String> toServer = new ArrayList<>();
 	private ArrayList<String> fromServer = new ArrayList<>();
-	// for remote object database:
-	private static Database db;
 	// for stock status:
 	private String[] header = { "ID", "Name", "Price", "In Stock", "Sold Total", "Delivery Cost", "Max Stock",
 			"X for Y", "X value", "Y value", "Discount", "Discount value", "Loyalty Discount" };
@@ -258,6 +245,7 @@ public class ClientRun extends JFrame {
 		JComboBox comboBoxItems = new JComboBox();
 		comboBoxItems.setMaximumRowCount(5000);
 		comboBoxItems.setBounds(10, 73, 210, 22);
+		comboBoxItems.setEnabled(false);
 		pSpecialOffer.add(comboBoxItems);
 
 		JLabel lblSetPromotionType = new JLabel("Set Promotion Type");
@@ -266,6 +254,7 @@ public class ClientRun extends JFrame {
 
 		JCheckBox chckbxXForY = new JCheckBox("X in price of Y");
 		chckbxXForY.setBounds(240, 73, 120, 23);
+		chckbxXForY.setEnabled(false);
 		pSpecialOffer.add(chckbxXForY);
 
 		textFieldX = new JTextField();
@@ -288,6 +277,7 @@ public class ClientRun extends JFrame {
 
 		JCheckBox chckbxDiscount = new JCheckBox("Discount");
 		chckbxDiscount.setBounds(240, 128, 120, 23);
+		chckbxDiscount.setEnabled(false);
 		pSpecialOffer.add(chckbxDiscount);
 
 		textFieldDisc = new JTextField();
@@ -322,14 +312,17 @@ public class ClientRun extends JFrame {
 
 		JCheckBox chckbxFreeDelivery = new JCheckBox("FreeDelivery");
 		chckbxFreeDelivery.setBounds(240, 179, 120, 23);
+		chckbxFreeDelivery.setEnabled(false);
 		pSpecialOffer.add(chckbxFreeDelivery);
 
 		JCheckBox chckbxBuyGet = new JCheckBox("Buy 1 get 1 free");
 		chckbxBuyGet.setBounds(240, 230, 120, 23);
+		chckbxBuyGet.setEnabled(false);
 		pSpecialOffer.add(chckbxBuyGet);
 
 		JCheckBox chckbxLoyaltyDisc = new JCheckBox("Loyalty Discount Applies");
 		chckbxLoyaltyDisc.setBounds(240, 277, 176, 23);
+		chckbxLoyaltyDisc.setEnabled(false);
 		pSpecialOffer.add(chckbxLoyaltyDisc);
 
 	}

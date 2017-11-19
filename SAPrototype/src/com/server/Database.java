@@ -6,7 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.mail.*;
 import javax.mail.internet.*;
@@ -36,32 +39,33 @@ public class Database {
 	private ArrayList<Integer> id;
 	// stock watch
 	double stockWatch = 0.1;
-	//promotions default values
+	// promotions default values
 	private int defaultX = 0;
 	private int defaultY = 0;
 	private double defaultDiscount = 0.0;
-	// transactions:
+	// enabling transaction history:
 	private ArrayList<Double> transactions;
 	// users:
 	private ArrayList<String> userName;
 	private ArrayList<String> userSurname;
 	private ArrayList<Double> userDiscount;
 	private ArrayList<Integer> cardNumber;
-	
-	// on first use populate DB:
+	private ArrayList<ArrayList<Double>> userPurchaseHistory;
+
 	public Database() {
-		//for users data:
+		// for users data:
 		userName = new ArrayList<>();
 		userSurname = new ArrayList<>();
 		userDiscount = new ArrayList<>();
 		cardNumber = new ArrayList<>();
-		//for processing:
+		userPurchaseHistory = new ArrayList<>();
+		// for processing:
 		stock = new ArrayList<>();
 		name = new ArrayList<>();
 		max = new ArrayList<>();
 		id = new ArrayList<>();
 		toSend = new ArrayList<>();
-		//for database:
+		// for database:
 		items = new ArrayList<>();
 		prices = new ArrayList<>();
 		delivery = new ArrayList<>();
@@ -74,8 +78,77 @@ public class Database {
 		promotion2 = new ArrayList<>();
 		discount = new ArrayList<>();
 		promotion3 = new ArrayList<>();
+		// external transactions
 		transactions = new ArrayList<>();
+
+		// one time read/generate data for db to populate it:
 		populate();
+		generateClients();
+	}
+
+	protected void makePurchase() {
+		Random rd = new Random();
+		//total shopping
+		double price = 0.0;
+
+		for (int i = 0; i < 5; i++) {
+
+			int t = rd.nextInt(prices.size());
+			if (quanity.get(t) > 0) {
+				// if object is available, buy it and reduce qty by 1
+				quanity.set(t, quanity.get(t) - 1);
+				totalSold.set(t, totalSold.get(t) + 1);
+				//paid delivery:
+				if(promotion3.get(t)==false) {
+					price = price + prices.get(rd.nextInt(prices.size()))+delivery.get(t);
+				}
+				//free delivery: 
+				else {
+					price = price + prices.get(rd.nextInt(prices.size()));
+				}
+			}
+
+		}
+		//apply user discount:
+		int u = rd.nextInt(userDiscount.size());
+		price = price * userDiscount.get(u);
+		
+		if (price != 0.0) {
+			userPurchaseHistory.get(u).add(price);
+		}
+	}
+
+	// use to populate db with clients and history of shopping
+	private void generateClients() {
+		Random rd = new Random();
+		for (int z = 0; z < 100; z++) {
+			// 24 characters:
+			String characters = "ABCDEFGHIJKLMNOPRSTUVXYZ";
+			// generate name
+			String name = "";
+			for (int i = 0; i < 10; i++) {
+				name = name + characters.charAt(rd.nextInt(characters.length()));
+			}
+			userName.add(name);
+			name = "";
+			// generate surname
+			String surname = "";
+			for (int i = 0; i < 10; i++) {
+				surname = surname + characters.charAt(rd.nextInt(characters.length()));
+			}
+			userSurname.add(surname);
+			surname = "";
+			// generate existing discount
+			userDiscount.add((double) rd.nextInt(50));
+			// generate card number
+			cardNumber.add(rd.nextInt(666666));
+			// generate purchase history
+			ArrayList<Double> d = new ArrayList<>();
+			for (int j = 0; j < rd.nextInt(100); j++) {
+				d.add((double) rd.nextInt(20) + 1);
+			}
+			userPurchaseHistory.add(d);
+		}
 	}
 
 	// read from file dataDB.txt in root folder:
@@ -179,15 +252,14 @@ public class Database {
 		userDiscount.add(d);
 		cardNumber.add(i);
 	}
-	
+
 	public void setStockReplenish() {
 		for (int i = 0; i < id.size(); i++) {
 			quanity.set(id.get(i), maxStock.get(id.get(i)));
 		}
 		System.out.println("Stock replaced!");
-		id.removeAll(id);
 	}
-	
+
 	public void setDefaults(int dX, int dY, double dDiscount) {
 		defaultX = dX;
 		defaultY = dY;
@@ -273,7 +345,7 @@ public class Database {
 		checkStock();
 	}
 
-	private void checkStock() {
+	protected void checkStock() {
 		// first empty old arrays
 		if (stock.size() > 0) {
 			stock.removeAll(stock);
@@ -290,8 +362,7 @@ public class Database {
 		// check stock if any item is below set threshold add it to the list
 		for (int i = 0; i < name.size(); i++) {
 			if (stock.get(i) < max.get(i)) {
-				if (max.get(i)*stockWatch > stock.get(i)) {
-					System.out.println(max.get(i)*stockWatch);
+				if (max.get(i) * stockWatch > stock.get(i)) {
 					toSend.add(name.get(i));
 					id.add(i);
 				}
@@ -352,7 +423,7 @@ public class Database {
 			// Set To: header field of the header.
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 			// Set Subject: header field
-			message.setSubject("Low Stock Order");
+			message.setSubject("Low Stock - Automatic Order");
 			// Now set the actual message
 			message.setText(stockDataFinal);
 			// Send message
@@ -363,19 +434,10 @@ public class Database {
 
 			System.out.println("Sent message successfully...");
 			// replenish stock in db:
-			System.out.println("Stock Ordered: ");
-			System.out.println(id);
-			orderItems();
+			setStockReplenish();
 
 		} catch (MessagingException e) {
 			e.printStackTrace();
 		}
 	}
-
-	// order items, they will appear instantly in DB
-	private void orderItems() {
-		this.setStockReplenish();
-	}
-
-
 }

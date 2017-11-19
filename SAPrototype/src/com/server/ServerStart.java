@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.registry.RMIInterface;
 
@@ -24,11 +26,24 @@ public class ServerStart extends UnicastRemoteObject implements RMIInterface {
 			System.err.println("Server Ready");
 			db = new Database();
 			System.err.println("Database Connected");
-			
 		} catch(Exception e) {
 			System.err.println("Server exception: "+ e.toString());
 			e.printStackTrace();
 		}
+		//task scheduler for automatic db checks:
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				for(int i = 0; i<25; i++) {
+					db.makePurchase();
+				}
+				System.out.println("New purchase were made!");
+				db.checkStock();
+				System.out.println("Stock automatic check routine completed!");
+			}
+		}, 20000, 10000);
+
 	}
 	
 	@Override
