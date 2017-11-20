@@ -8,12 +8,8 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.mail.*;
 import javax.mail.internet.*;
-
 import com.sun.mail.smtp.SMTPTransport;
 
 public class Database {
@@ -241,16 +237,38 @@ public class Database {
 		return transactions;
 	}
 
+	public ArrayList<Integer> getUserCardID(){
+		return cardNumber;
+	}
+	
+	public String getUserName(int i){
+		return userName.get(i);
+	}
+	
+	public String getUserSurname(int i){
+		return userSurname.get(i);
+	}
+	
+	public Double getUserDiscount(int i){
+		return userDiscount.get(i);
+	}
+	
+	public ArrayList<ArrayList<Double>> getPurchaseHistory(){
+		return userPurchaseHistory;
+	}
+	
+	
 	public double getStockWatch() {
 		return stockWatch;
 	}
 
 	// setters:
-	public void addNewClient(String n, String s, double d, int i) {
+	public void addNewClient(String n, String s, double d, int i) {	
 		userName.add(n);
 		userSurname.add(s);
 		userDiscount.add(d);
 		cardNumber.add(i);
+		userPurchaseHistory.add(new ArrayList<Double>());
 	}
 
 	public void setStockReplenish() {

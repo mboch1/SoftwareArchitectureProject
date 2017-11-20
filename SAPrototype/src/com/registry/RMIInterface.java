@@ -47,5 +47,11 @@ public interface RMIInterface extends Remote {
 	// special offer management methods:
 	public void updateDefaultOptions(int x, int y, double d) throws RemoteException;
 
+	public String getShopReport() throws RemoteException;
+
+	public String[] getUserIDs() throws RemoteException;
+
+	public ArrayList<String> getUserData(int index) throws RemoteException;
+
 	
 }

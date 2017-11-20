@@ -7,7 +7,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -66,16 +65,18 @@ public class ClientRun extends JFrame {
 	private JTextField textFieldPrice;
 	private JTextField textFieldDelivery;
 	private JTextArea textAreaResult;
+	private JTextArea textAreaShopReport;
+	private JComboBox<String> comboBoxUsers = new JComboBox();
 	private JButton btnSend;
 	private JButton btnAcceptCredit;
 	// for enabling:
 	private double toPayment = 0;
-	
+	private int userIndex = 0;
 	private ArrayList<String> toServer = new ArrayList<>();
 	private ArrayList<String> fromServer = new ArrayList<>();
 	// for stock status:
 	private String[] header = { "ID", "Name", "Price", "In Stock", "Sold Total", "Delivery Cost", "Max Stock",
-			"X for Y", "X value", "Y value", "Discount", "Discount value", "Loyalty Discount" };
+			"X for Y", "X number", "Y number", "Discount", "Discount value", "Free Delivery" };
 	private String[][] data = new String[500][13];
 	private ArrayList<String> items = new ArrayList<>();
 	private ArrayList<Double> prices = new ArrayList<>();
@@ -89,6 +90,8 @@ public class ClientRun extends JFrame {
 	private ArrayList<Boolean> promotion2 = new ArrayList<>();
 	private ArrayList<Double> discount = new ArrayList<>();
 	private ArrayList<Boolean> promotion3 = new ArrayList<>();
+	// for shop report:
+	private String shopReport = "";
 
 	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
 		// connect to service broker:
@@ -136,6 +139,25 @@ public class ClientRun extends JFrame {
 
 		createSpecialOffer();
 
+	}
+
+	private String[] getUserIDs() {
+		// get string array of available users:
+		try {
+			String[] empty = null;
+			String[] userID;
+
+			userID = empty;
+
+			userID = lookUp.getUserIDs();
+
+			return userID;
+
+		} catch (RemoteException e1) {
+			e1.printStackTrace();
+		}
+
+		return null;
 	}
 
 	// create menu bar:
@@ -404,12 +426,10 @@ public class ClientRun extends JFrame {
 					double d = Double.parseDouble(textFieldLoyaltyDiscount.getText());
 					int i = Integer.parseInt(textFieldClientID.getText());
 					lookUp.setClientDiscountCard(n, s, d, i);
-
 					textFieldClientName.setText("");
 					textFieldClientSurname.setText("");
 					textFieldLoyaltyDiscount.setText("");
 					textFieldClientID.setText("");
-					
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -419,7 +439,7 @@ public class ClientRun extends JFrame {
 		pLoyaltyEditor.add(btnSubmit);
 
 		JButton btnSetDiscount = new JButton("Set Discount");
-
+		btnSetDiscount.setEnabled(false);
 		btnSetDiscount.setBounds(437, 398, 140, 23);
 		pLoyaltyEditor.add(btnSetDiscount);
 
@@ -441,14 +461,39 @@ public class ClientRun extends JFrame {
 		contentPane.add(pEnabling, "Enabling");
 		pEnabling.setLayout(null);
 
-		JLabel lblUserId = new JLabel("Client ID (or Loyalty Card ID)");
+		JLabel lblUserId = new JLabel("Client ID");
 		lblUserId.setBounds(10, 60, 210, 14);
 		pEnabling.add(lblUserId);
 
-		textFieldUserID = new JTextField();
-		textFieldUserID.setBounds(10, 85, 150, 20);
-		pEnabling.add(textFieldUserID);
-		textFieldUserID.setColumns(10);
+		// get current ids before first run
+		getUserIDs();
+
+		comboBoxUsers = new JComboBox<String>(getUserIDs());
+		comboBoxUsers.setMaximumRowCount(5000);
+		comboBoxUsers.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					JComboBox<String> cb = (JComboBox<String>) arg0.getSource();
+					userIndex = cb.getSelectedIndex();
+					ArrayList<String> udata = new ArrayList<>();
+					udata.addAll(lookUp.getUserData(userIndex));
+
+					textFieldUserID.setText(cb.getSelectedItem().toString());
+					textFieldFirstName.setText(udata.get(1));
+					textFieldSurname.setText(udata.get(2));
+
+					udata.removeAll(udata);
+
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
+		comboBoxUsers.setBounds(10, 85, 210, 22);
+		comboBoxUsers.setEditable(false);
+		comboBoxUsers.setEnabled(true);
+		pEnabling.add(comboBoxUsers);
 
 		JLabel lblTotalCharge = new JLabel("Total Charge");
 		lblTotalCharge.setBounds(10, 116, 150, 14);
@@ -469,14 +514,14 @@ public class ClientRun extends JFrame {
 		textAreaResult.setBounds(281, 83, 581, 500);
 		pEnabling.add(textAreaResult);
 
+		JLabel lblName = new JLabel("First Name");
+		lblName.setBounds(10, 172, 150, 14);
+		pEnabling.add(lblName);
+
 		textFieldFirstName = new JTextField();
 		textFieldFirstName.setBounds(10, 201, 150, 20);
 		pEnabling.add(textFieldFirstName);
 		textFieldFirstName.setColumns(10);
-
-		JLabel lblName = new JLabel("First Name");
-		lblName.setBounds(10, 172, 150, 14);
-		pEnabling.add(lblName);
 
 		JLabel lblSurname = new JLabel("Surname");
 		lblSurname.setBounds(10, 232, 46, 14);
@@ -486,6 +531,15 @@ public class ClientRun extends JFrame {
 		textFieldSurname.setBounds(10, 257, 150, 20);
 		pEnabling.add(textFieldSurname);
 		textFieldSurname.setColumns(10);
+
+		JLabel lbltFieldID = new JLabel("Client ID");
+		lbltFieldID.setBounds(10, 278, 46, 14);
+		pEnabling.add(lbltFieldID);
+
+		textFieldUserID = new JTextField();
+		textFieldUserID.setBounds(10, 294, 150, 20);
+		pEnabling.add(textFieldUserID);
+		textFieldUserID.setColumns(10);
 
 		JLabel lblInquiryResults = new JLabel("Inquiry Results:");
 		lblInquiryResults.setBounds(281, 60, 128, 14);
@@ -505,7 +559,6 @@ public class ClientRun extends JFrame {
 					fromServer.addAll(lookUp.getEnablingResult(toServer));
 					// process response:
 				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -526,7 +579,7 @@ public class ClientRun extends JFrame {
 				}
 			}
 		});
-		btnSend.setBounds(71, 288, 89, 23);
+		btnSend.setBounds(71, 315, 89, 23);
 		pEnabling.add(btnSend);
 
 		btnAcceptCredit = new JButton("Accept Credit");
@@ -535,8 +588,11 @@ public class ClientRun extends JFrame {
 				try {
 					btnAcceptCredit.setEnabled(false);
 					lookUp.payWithEnabling(toPayment);
+					textFieldUserID.setText("");
+					textFieldTotal.setText("");
+					textFieldFirstName.setText("");
+					textFieldSurname.setText("");
 				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -774,7 +830,7 @@ public class ClientRun extends JFrame {
 
 	}
 
-	// to do: - GENERATE CLIENTS "accounting DB" - then create report based on data
+	// working:
 	private void createShopReport() {
 		pShopReport = new JPanel();
 		pShopReport.setLayout(null);
@@ -783,13 +839,35 @@ public class ClientRun extends JFrame {
 
 		JLabel lblShopReport = new JLabel("Shop Report");
 		lblShopReport.setBackground(Color.WHITE);
-		lblShopReport.setBounds(20, 11, 352, 14);
+		lblShopReport.setBounds(20, 11, 180, 14);
 		pShopReport.add(lblShopReport);
 
-		JTextArea textAreaShopReport = new JTextArea();
+		textAreaShopReport = new JTextArea();
 		textAreaShopReport.setEditable(false);
-		textAreaShopReport.setBounds(20, 36, 968, 650);
+		textAreaShopReport.setBackground(Color.WHITE);
+		textAreaShopReport.setBounds(20, 36, 800, 350);
 		pShopReport.add(textAreaShopReport);
+
+		// send data to database:
+		JButton btnGetReport = new JButton("Get Report");
+		btnGetReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					// remove old report data:
+					shopReport = "";
+					// get report
+					shopReport = lookUp.getShopReport();
+					// set report
+					textAreaShopReport.setText(shopReport);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		btnGetReport.setBounds(200, 7, 120, 23);
+		pShopReport.add(btnGetReport);
+
 	}
 
 	// working:
