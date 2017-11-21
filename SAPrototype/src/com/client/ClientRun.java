@@ -101,6 +101,7 @@ public class ClientRun extends JFrame {
 			public void run() {
 				try {
 					ClientRun frame = new ClientRun();
+					frame.setName("DE-Store Prototype");
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
